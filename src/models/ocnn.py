@@ -244,15 +244,15 @@ class OCNN(BaseEstimator, ClassifierMixin):
                 term4 = costvalue[3]
                 term5 = costvalue[4].eval()
                 yval = costvalue[5].eval()
-                print ("================================")
-                print ("Epoch = %d, r = %f"
-                        % (epoch + 1,rvalue))
-                print ("================================")
-                print ("Total Cost: ",np.mean(term5))
+                # print ("================================")
+                print ("Epoch = %d, r = %f, Cost = %f"
+                        % (epoch + 1,rvalue,np.mean(term5)))
+                # print ("================================")
+                # print ("Total Cost: ",np.mean(term5))
                         
                 import time
                 trainTime = time.time() - start_time
-                print("Training Time taken,",trainTime)
+                # print("Training Time taken,",trainTime)
           
             
             
@@ -265,8 +265,8 @@ class OCNN(BaseEstimator, ClassifierMixin):
                 rstar =rvalue
 
             # save the w_1 and bias1 to numpy array
-            print("Saving the trained Model weights ... @",outfile)
-            print("The optimized value of r found is",rstar)
+            # print("Saving the trained Model weights ... @",outfile)
+            # print("The optimized value of r found is",rstar)
             np.save(outfile+"w_1", np_w_1)
             np.save(outfile+"w_2", np_w_2)
             np.save(outfile+"bias1",np_bias1)
