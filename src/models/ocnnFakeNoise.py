@@ -166,8 +166,12 @@ class OCNNFakeNoiseNN(BaseEstimator, ClassifierMixin):
             
             term3 = 1 / nu * tf.reduce_mean(tf.nn.relu(r - nnScore(X, w, V, g,bias1,bias2)))
             term4 = -r
-            term5 = tf.reduce_sum( tf.maximum(0.0, 1.0 + nnScore(Xneg,  w, V, g,bias1,bias2)))
+            # term5 = tf.reduce_sum( tf.maximum(0.0, 1.0 + nnScore(Xneg,  w, V, g,bias1,bias2)))
             
+            # term5 = 1/nu * tf.reduce_sum( tf.maximum(0.0, 1.0 + nnScore(Xneg, w, V, g,bias1,bias2)))
+
+            term5 = 1/nu * tf.reduce_sum( tf.maximum(0.0, r + nnScore(Xneg, w, V, g,bias1,bias2)))
+
             y_hat = nnScore(X, w, V, g,bias1,bias2)
             
             totalCost = term1 + term2 + term3 + term4 + term5
@@ -177,7 +181,7 @@ class OCNNFakeNoiseNN(BaseEstimator, ClassifierMixin):
             return loss
             
             
-        def ocnn_obj(theta, X,XNegative, nu, w1, w2, g,r,bias1,bias2):
+        def ocnn_obj(theta, X,Xneg, nu, w1, w2, g,r,bias1,bias2):
 
             w = w1
             V = w2
@@ -192,8 +196,12 @@ class OCNNFakeNoiseNN(BaseEstimator, ClassifierMixin):
             term3 = 1/nu * tf.reduce_mean(tf.nn.relu(r - nnScore(X, w, V, g,bias1,bias2)))
             term4 = -r
 
-            term5 = tf.reduce_sum( tf.maximum(0.0, 1.0 + nnScore(XNegative,  w, V, g,bias1,bias2)))
+            # term5 = tf.reduce_sum( tf.maximum(0.0, 1.0 + nnScore(Xneg,  w, V, g,bias1,bias2)))
+
+            # term5 = 1/nu * tf.reduce_sum( tf.maximum(0.0, 1.0 + nnScore(Xneg, w, V, g,bias1,bias2)))
             
+            term5 = 1/nu * tf.reduce_sum( tf.maximum(0.0, r + nnScore(Xneg, w, V, g,bias1,bias2)))
+
             return term1 + term2 + term3 + term4 + term5
 
 
