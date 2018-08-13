@@ -33,7 +33,7 @@ from keras.utils.generic_utils import get_custom_objects
 import tensorflow as tf
 
 
-class SupervisedFakeNoiseNN(BaseEstimator, ClassifierMixin):
+class SupervisedNN(BaseEstimator, ClassifierMixin):
     """An example of classifier"""
 
     def __init__(self, intValue=0, stringParam="defaultValue",
@@ -47,8 +47,9 @@ class SupervisedFakeNoiseNN(BaseEstimator, ClassifierMixin):
         # THIS IS WRONG! Parameters should have same name as attributes
         self.differentParam = otherParam
 
-        self.directory = "../models/supervisedFakeNN/"
+        self.directory = "../models/supervisedBC/"
         self.h_size = 64
+        self.model = ""
 
     def train_KerasBinaryClassifier(self, X_train, y_train,noOfepochs):
 
@@ -65,24 +66,7 @@ class SupervisedFakeNoiseNN(BaseEstimator, ClassifierMixin):
         })
 
         def model():
-            # Load the 
-            # print("Loading the Pretrained Supervised NN Model..... ")
-            from keras.models import load_model
-            from keras.models import model_from_json
-            
 
-            # # Model reconstruction from JSON file
-            # with open('../models/supervisedBC/model_architecture.json', 'r') as f:
-            #     best_model = model_from_json(f.read())
-
-            # # Load weights into the new model
-            # best_model.load_weights('../models/supervisedBC/model_weights.h5')
-            # best_model.compile(
-            #     optimizer='rmsprop',
-            #     loss='binary_crossentropy',
-            #     metrics=['accuracy'])
-           
-            
             model = Sequential()
             model.add(Dense(128, input_dim=X_train.shape[1]))
             model.add(Activation(custom_activation))
@@ -92,23 +76,21 @@ class SupervisedFakeNoiseNN(BaseEstimator, ClassifierMixin):
                 optimizer='rmsprop',
                 loss='binary_crossentropy',
                 metrics=['accuracy'])
-
-            # ## Copy the weights from one model to another model
-            # model.set_weights(best_model.get_weights()) 
-            
+                # Save the weights
+            self.model = model
+         
 
             return model
 
         # early_stopping = callbacks.EarlyStopping(
         #     monitor='val_loss', patience=1, verbose=0, mode='auto')
-        # print("Removed Early stopping......")
+        print("Removed Early stopping......")
         pipe = pipeline.Pipeline([('rescale', preprocessing.StandardScaler()),
                                   ('nn',
                                    KerasClassifier(
                                        build_fn=model,
                                        epochs=noOfepochs,
                                        batch_size=128,
-                                       verbose=0,
                                        validation_split=0.2))])
 
                                     #    callbacks=[early_stopping]
@@ -116,15 +98,25 @@ class SupervisedFakeNoiseNN(BaseEstimator, ClassifierMixin):
 
         model_step = pipe.steps.pop(-1)[1]
         joblib.dump(pipe, os.path.join(self.directory, 'pipeline.pkl'))
-        # print("Trained Model is Saved at relative path inside PROJECT_DIR ",
-            #   self.directory)
+        print("Trained Model is Saved at relative path inside PROJECT_DIR ",
+              self.directory)
         models.save_model(model_step.model,
                           os.path.join(self.directory, 'model.h5'))
+        
+        model_step.model.save_weights(os.path.join(self.directory, 'model_weights.h5'))
+            #Save the model architecture
+        with open(os.path.join(self.directory, 'model_architecture.json'), 'w') as f:
+                f.write(model_step.model.to_json())
+
         return
+
+   
+
+
 
     def fit(self, X_train,Y_train,epochs):
 
-        # print("Training the Keras Binary classifier.....")
+        print("Training the Keras Binary classifier.....")
         self.train_KerasBinaryClassifier(X_train, Y_train,epochs)
 
     def predict(self, X_testPos, X_testNeg):
@@ -134,6 +126,35 @@ class SupervisedFakeNoiseNN(BaseEstimator, ClassifierMixin):
         X_testNegLabel = np.zeros(len(X_testNeg))
         y_test = np.concatenate((X_testPosLabel, X_testNegLabel), axis=0)
         pipe = joblib.load(os.path.join(self.directory, 'pipeline.pkl'))
+        
+        # print("Loading the Pretrained Supervised NN Model..... ")
+        # from keras.models import load_model
+        # from keras.models import model_from_json
+        # with open('../models/supervisedBC/model_architecture.json', 'r') as f:
+        #         best_model = model_from_json(f.read())
+
+        #     # Load weights into the new model
+        # best_model.load_weights('../models/supervisedBC/model_weights.h5')
+        # best_model.compile(
+        #         optimizer='rmsprop',
+        #         loss='binary_crossentropy',
+        #         metrics=['accuracy'])
+           
+            
+        # model = Sequential()
+        # model.add(Dense(128, input_dim=X_train.shape[1]))
+        # model.add(Activation(custom_activation))
+        # model.add(Dense(64, activation='sigmoid'))
+        # model.add(Dense(1))
+        # model.compile(
+        #         optimizer='rmsprop',
+        #         loss='binary_crossentropy',
+        #         metrics=['accuracy'])
+
+        # # ## Copy the weights from one model to another model
+        # model.set_weights(best_model.get_weights()) 
+
+
         model = models.load_model(os.path.join(self.directory, 'model.h5'))
         pipe.steps.append(('nn', model))
 
@@ -143,7 +164,7 @@ class SupervisedFakeNoiseNN(BaseEstimator, ClassifierMixin):
             y_test, y_pred_keras)
         from sklearn.metrics import auc
         auc_keras = auc(fpr_keras, tpr_keras)
-        print("AUC:",auc_keras)
+        
         return auc_keras
 
     def score(self, X, y=None):
