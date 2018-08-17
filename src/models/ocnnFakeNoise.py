@@ -50,7 +50,7 @@ class OCNNFakeNoiseNN(BaseEstimator, ClassifierMixin):
 
     nu = 0.1
     scaler = StandardScaler()
-    h_size = 200
+    h_size = 64
 
     def __init__(self, intValue=0, stringParam="defaultValue",
                  otherParam=None):
@@ -126,18 +126,7 @@ class OCNNFakeNoiseNN(BaseEstimator, ClassifierMixin):
             weights = tf.random_normal(shape, mean=0, stddev=0.5)
             return tf.Variable(weights, trainable=False)
 
-            def forwardprop(X, w_1, w_2):
-                """
-                Forward-propagation.
-                IMPORTANT: yhat is not softmax since TensorFlow's softmax_cross_entropy_with_logits() does that internally.
-                """
-                X = tf.cast(X, tf.float32)
-                w_1 = tf.cast(w_1, tf.float32)
-                w_2 = tf.cast(w_2, tf.float32)
-                h = tf.nn.sigmoid(tf.matmul(X, w_1))  # The \sigma function
-                yhat = tf.matmul(h, w_2)  # The \varphi function
-                return yhat
-
+    
         def nnScore(X, w, V, g, bias1, bias2):
             X = tf.cast(X, tf.float32)
             w = tf.cast(w, tf.float32)
@@ -196,13 +185,12 @@ class OCNNFakeNoiseNN(BaseEstimator, ClassifierMixin):
             term5 = tf.reduce_mean(
                 tf.maximum(0.0, 1.0 + nnScore(Xneg, w, V, g, bias1, bias2)))
 
-            # term5 = tf.reduce_sum( tf.maximum(0.0, 1.0 + nnScore(Xneg,  w, V, g,bias1,bias2)))
+            return term1 + term2 + term3 + term4 + term5
+
+        # term5 = tf.reduce_sum( tf.maximum(0.0, 1.0 + nnScore(Xneg,  w, V, g,bias1,bias2)))
             # term5 = 1/nu * tf.reduce_sum( tf.maximum(0.0, 1.0 + nnScore(Xneg, w, V, g,bias1,bias2)))
             # term5 = 1 / nu * tf.reduce_mean(
             #     nnScore(Xneg, w, V, g, bias1, bias2)**2)
-
-            return term1 + term2 + term3 + term4 + term5
-
         X = tf.placeholder("float32", shape=[None, x_size], name="X")
         XNegative = tf.placeholder(
             "float32", shape=[None, x_size], name="XNegative")

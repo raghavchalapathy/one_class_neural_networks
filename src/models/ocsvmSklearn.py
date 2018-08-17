@@ -41,12 +41,22 @@ class OCSVM(BaseEstimator, ClassifierMixin):
         self.differentParam = otherParam 
                
         self.directory = "../models/supervisedBC/"
-  
+        self.IMG_HGT = 28
+        self.IMG_WDT=28
+
+    @staticmethod
+    def image_to_feature_vector(image, IMG_HGT, IMG_WDT):
+        # resize the image to a fixed size, then flatten the image into
+        # a list of raw pixel intensities
+        return np.reshape(image, (len(image), IMG_HGT * IMG_WDT))
+
     def fit(self,X,nu,kernel):
   
         print("Training the OCSVM classifier.....")
         from sklearn import svm
         clf = svm.OneClassSVM(nu = nu, kernel = kernel)
+        X = OCSVM.image_to_feature_vector(X, self.IMG_HGT, self.IMG_WDT)
+
         clf.fit(X) 
 
         return clf
@@ -62,6 +72,10 @@ class OCSVM(BaseEstimator, ClassifierMixin):
         return roc_score
     
     def score(self,clf,Xtest_Pos,Xtest_Neg):
+
+        Xtest_Pos= OCSVM.image_to_feature_vector(Xtest_Pos, self.IMG_HGT, self.IMG_WDT)
+        Xtest_Neg = OCSVM.image_to_feature_vector(Xtest_Neg, self.IMG_HGT, self.IMG_WDT)
+
         decisionScore_POS = clf.decision_function(Xtest_Pos)
         decisionScore_Neg = clf.decision_function(Xtest_Neg)
         df_score = [ decisionScore_POS, decisionScore_Neg ]
@@ -101,5 +115,4 @@ class OCSVM(BaseEstimator, ClassifierMixin):
         # counts number of values bigger than mean
         print(" predict  function is not implemented for FakeNN")
         return
-      
       

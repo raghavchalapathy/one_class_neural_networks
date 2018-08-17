@@ -51,7 +51,7 @@ class OCNN(BaseEstimator, ClassifierMixin):
    
     nu = 0.1
     scaler = StandardScaler()
-    h_size = 200
+    h_size = 64
     
 
     def __init__(self, intValue=0, stringParam="defaultValue", otherParam=None):

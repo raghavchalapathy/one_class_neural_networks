@@ -70,7 +70,7 @@ class SupervisedNN(BaseEstimator, ClassifierMixin):
             model = Sequential()
             model.add(Dense(128, input_dim=X_train.shape[1]))
             model.add(Activation(custom_activation))
-            model.add(Dense(64, activation='sigmoid'))
+            model.add(Dense(64, activation='linear'))
             model.add(Dense(1))
             model.compile(
                 optimizer='rmsprop',
