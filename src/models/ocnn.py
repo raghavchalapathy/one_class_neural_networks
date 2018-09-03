@@ -1,45 +1,13 @@
 # Import libraries for data wrangling, preprocessing and visualization
 import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
-import seaborn as sns
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import LabelEncoder
-from sklearn.preprocessing import StandardScaler
-from sklearn.pipeline import Pipeline
-import os
-from keras import backend as K
-from keras import callbacks
-from keras import layers
-from keras import models
-from keras.wrappers.scikit_learn import KerasClassifier
-import pandas as pd
 import tensorflow as tf
-from sklearn import metrics
-from sklearn import pipeline
-from sklearn import preprocessing
-from sklearn.externals import joblib
-# Importing libraries for building the neural network
-from keras.models import Sequential
-from keras.layers import Dense
-from sklearn.model_selection import StratifiedKFold
-from sklearn.model_selection import cross_val_score
-from sklearn.externals import joblib
 from sklearn.base import BaseEstimator, ClassifierMixin
+import csv
 
 class OCNN(BaseEstimator, ClassifierMixin):  
     """An example of classifier"""
     from sklearn.preprocessing import StandardScaler
-    from sklearn import svm
-    from sklearn.metrics import roc_auc_score
-    import tensorflow as tf
-    import numpy as np
-    import numpy  as np
-    import pandas as pd
-    import matplotlib.pyplot as plt
-    import seaborn as srn
-  
-    
 
     results = "./sanity_results/"
     decision_scorePath = "./scores/"
@@ -100,7 +68,9 @@ class OCNN(BaseEstimator, ClassifierMixin):
             myfile.close()
 
             return
-   
+
+
+
     def train_OCNN_Classifier(self,X_train,nu,activation,epochs):
 
         RANDOM_SEED = 42
@@ -204,12 +174,12 @@ class OCNN(BaseEstimator, ClassifierMixin):
 
         # Weight initializations
         w_1 = init_weights((x_size, h_size))
+        w_2 = init_weights((h_size, y_size))
+        # weights = tf.random_normal((h_size, y_size),mean=0, stddev=0.1)
            
-        weights = tf.random_normal((h_size, y_size),mean=0, stddev=0.1)
-           
-        ocsvm_wt = np.load(oCSVMweights+"ocsvm_wt.npy")
-        w_2 =tf.get_variable("tf_var_initialized_ocsvm",
-                                initializer=ocsvm_wt)
+        # ocsvm_wt = np.load(oCSVMweights+"ocsvm_wt.npy")
+        # w_2 =tf.get_variable("tf_var_initialized_ocsvm",
+        #                         initializer=ocsvm_wt)
             
         bias1 = tf.Variable(initial_value=[[1.0]], dtype=tf.float32,trainable=False)
         bias2 = tf.Variable(initial_value=[[0.0]], dtype=tf.float32,trainable=False)
@@ -228,8 +198,9 @@ class OCNN(BaseEstimator, ClassifierMixin):
         print("Training OC-NN started for epochs: ",epochs)
         for epoch in range(epochs):
                     # Train with each example
+            trainX = OCNN.image_to_feature_vector(trainX, 28, 28)
             sess.run(updates, feed_dict={X: train_X})
-                        
+
                     
             with sess.as_default():
                 svalue = nnScore(train_X, w_1, w_2, g,bias1,bias2)  

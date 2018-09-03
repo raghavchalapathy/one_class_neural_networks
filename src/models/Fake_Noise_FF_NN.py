@@ -26,25 +26,29 @@ from keras.utils.generic_utils import get_custom_objects
 
 class Fake_Noise_FF_NN:
 
+    ## Initialise static variables
+    INPUT_DIM = 0
+    HIDDEN_SIZE = 0
 
-
-    def __init__(self, intValue=0, stringParam="defaultValue",
+    def __init__(self, inputdim,hiddenLayerSize,img_hgt,img_wdt,modelSavePath,reportSavePath, intValue=0, stringParam="defaultValue",
                  otherParam=None):
         """
         Called when initializing the classifier
         """
+        Fake_Noise_FF_NN.INPUT_DIM = inputdim
         self.intValue = intValue
         self.stringParam = stringParam
 
         # THIS IS WRONG! Parameters should have same name as attributes
         self.differentParam = otherParam
 
-        self.directory = "../models/FAKE_NOISE_FF_NN/"
-        self.results = "../reports/figures/FAKE_NOISE_FF_NN/"
+        self.directory = modelSavePath
+        self.results = reportSavePath
         self.model = ""
-        self.IMG_HGT = 28
-        self.IMG_WDT = 28
+        self.IMG_HGT = img_hgt
+        self.IMG_WDT = img_wdt
         self.h_size= 196
+        Fake_Noise_FF_NN.HIDDEN_SIZE = hiddenLayerSize
 
     @staticmethod
     def image_to_feature_vector(image, IMG_HGT,IMG_WDT):
@@ -57,7 +61,7 @@ class Fake_Noise_FF_NN:
     @staticmethod
     def build(width, height, depth, classes):
 
-        h_size = 196
+        h_size = Fake_Noise_FF_NN.HIDDEN_SIZE
 
         def custom_activation(x):
             return (1 / np.sqrt(h_size)) * tf.cos(x / 0.02)
@@ -68,7 +72,7 @@ class Fake_Noise_FF_NN:
         })
 
         model = Sequential()
-        model.add(Dense(h_size, input_dim=784, kernel_initializer="glorot_normal"))
+        model.add(Dense(h_size, input_dim=Fake_Noise_FF_NN.INPUT_DIM, kernel_initializer="glorot_normal"))
         model.add(Activation(custom_activation))
         model.add(Dense(classes))
         model.add(Activation("linear"))
@@ -117,8 +121,8 @@ class Fake_Noise_FF_NN:
 
         x_test =  np.concatenate((testPosX, testNegX), axis=0)
         y_test = np.concatenate((testPosY, testNegY), axis=0)
-        IMG_HGT = 28
-        IMG_WDT=28
+        IMG_HGT = self.IMG_HGT
+        IMG_WDT=self.IMG_WDT
         x_test = Fake_Noise_FF_NN.image_to_feature_vector(x_test, IMG_HGT, IMG_WDT)
 
 
@@ -140,8 +144,10 @@ class Fake_Noise_FF_NN:
         print ("=" * 35)
         print ("auccary_score:", accuracy)
         print ("roc_auc_score:", auc)
-        print("y_true",y_true[4950:5050])
-        print("y_pred", y_pred[4950:5050])
+        start = len(x_test) - 100  # Print the last 100 labels among which last 50 are known anomalies
+        end = len(x_test)
+        print("y_true", y_true[start:end])
+        print("y_pred", y_pred[start:end])
         print ("=" * 35)
 
         return auc

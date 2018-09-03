@@ -27,10 +27,14 @@ from sklearn.model_selection import cross_val_score
 from sklearn.externals import joblib
 from sklearn.base import BaseEstimator, ClassifierMixin
 
-class OCSVM(BaseEstimator, ClassifierMixin):  
+class OCSVM(BaseEstimator, ClassifierMixin):
+
+
+
+
     """An example of classifier"""
 
-    def __init__(self, intValue=0, stringParam="defaultValue", otherParam=None):
+    def __init__(self, img_hgt,img_wdt,intValue=0, stringParam="defaultValue", otherParam=None):
         """
         Called when initializing the classifier
         """
@@ -41,8 +45,8 @@ class OCSVM(BaseEstimator, ClassifierMixin):
         self.differentParam = otherParam 
                
         self.directory = "../models/supervisedBC/"
-        self.IMG_HGT = 28
-        self.IMG_WDT=28
+        self.IMG_HGT = img_hgt
+        self.IMG_WDT=img_wdt
 
     @staticmethod
     def image_to_feature_vector(image, IMG_HGT, IMG_WDT):

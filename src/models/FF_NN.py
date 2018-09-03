@@ -2,7 +2,10 @@
 import numpy as np
 RANDOM_SEED = 42
 np.random.seed(RANDOM_SEED)
-
+import tensorflow as tf
+sess = tf.Session()
+from keras import backend as K
+K.set_session(sess)
 
 from keras.models import Sequential
 from keras.layers.convolutional import Conv2D
@@ -12,8 +15,7 @@ from keras.layers.core import Flatten
 from keras.layers.core import Dense
 from keras import backend as K
 # set the matplotlib backend so figures can be saved in the background
-import matplotlib
-matplotlib.use("Agg")
+
  
 # import the necessary packages
 from keras.preprocessing.image import ImageDataGenerator
@@ -27,25 +29,29 @@ from keras.utils.generic_utils import get_custom_objects
 
 class FF_NN:
 
+    ## Initialise static variables
+    INPUT_DIM = 0
+    HIDDEN_SIZE = 0
 
-
-    def __init__(self, intValue=0, stringParam="defaultValue",
+    def __init__(self, inputdim,hiddenLayerSize,img_hgt,img_wdt,modelSavePath,reportSavePath ,intValue=0, stringParam="defaultValue",
                  otherParam=None):
         """
         Called when initializing the classifier
         """
+        FF_NN.INPUT_DIM = inputdim
         self.intValue = intValue
         self.stringParam = stringParam
 
         # THIS IS WRONG! Parameters should have same name as attributes
         self.differentParam = otherParam
 
-        self.directory = "../models/FF_NN/"
-        self.results = "../reports/figures/FF_NN/"
+        self.directory = modelSavePath
+        self.results = reportSavePath
         self.model = ""
-        self.IMG_HGT = 28
-        self.IMG_WDT = 28
-        self.h_size= 196
+        self.IMG_HGT = img_hgt
+        self.IMG_WDT = img_wdt
+        self.h_size= hiddenLayerSize
+        FF_NN.HIDDEN_SIZE= hiddenLayerSize
 
     @staticmethod
     def image_to_feature_vector(image, IMG_HGT,IMG_WDT):
@@ -58,7 +64,7 @@ class FF_NN:
     @staticmethod
     def build(width, height, depth, classes):
 
-        h_size = 196
+        h_size =  FF_NN.HIDDEN_SIZE
 
         def custom_activation(x):
             return (1 / np.sqrt(h_size)) * tf.cos(x / 0.02)
@@ -69,7 +75,7 @@ class FF_NN:
         })
 
         model = Sequential()
-        model.add(Dense(h_size, input_dim=784, kernel_initializer="glorot_normal"))
+        model.add(Dense(h_size, input_dim=FF_NN.INPUT_DIM, kernel_initializer="glorot_normal"))
         model.add(Activation(custom_activation))
         model.add(Dense(classes))
         model.add(Activation("linear"))
@@ -96,6 +102,12 @@ class FF_NN:
         # save the model to disk
         print("[INFO] serializing network...")
         model.save(self.directory+"FF_NN.h5")
+        model.save_weights(self.directory+'FF_NN_weightsfile.h5')
+        # with sess.as_default():
+        #     w = model.layers[0].get_weights()
+        #     V = model.layers[2].get_weights()
+        #     np.save(self.directory + "w", w)
+        #     np.save(self.directory + "V", V)
         # plot the training loss and accuracy
         plt.style.use("ggplot")
         plt.figure()
@@ -116,10 +128,10 @@ class FF_NN:
 
         model = load_model(self.directory+"FF_NN.h5")
 
-        x_test =  np.concatenate((testPosX, testNegX), axis=0)
-        y_test = np.concatenate((testPosY, testNegY), axis=0)
-        IMG_HGT = 28
-        IMG_WDT=28
+        x_test =  np.concatenate((testPosX, testNegX))
+        y_test = np.concatenate((testPosY, testNegY))
+        IMG_HGT =  self.IMG_HGT
+        IMG_WDT= self.IMG_WDT
         x_test = FF_NN.image_to_feature_vector(x_test, IMG_HGT, IMG_WDT)
 
 
@@ -141,8 +153,11 @@ class FF_NN:
         print ("=" * 35)
         print ("auccary_score:", accuracy)
         print ("roc_auc_score:", auc)
-        print("y_true",y_true[4950:5050])
-        print("y_pred", y_pred[4950:5050])
+        start = len(x_test) -100 # Print the last 100 labels among which last 50 are known anomalies
+        end = len(x_test)
+        print("y_true", y_true[start:end])
+        print("y_pred", y_pred[start:end])
+
         print ("=" * 35)
 
         return auc
